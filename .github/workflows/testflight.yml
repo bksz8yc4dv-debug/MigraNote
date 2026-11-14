@@ -12,8 +12,11 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
-          bundler-cache: true
+          bundler-cache: false
           working-directory: ios
+      - name: Install Fastlane
+        working-directory: ios
+        run: bundle install
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate Xcode project
