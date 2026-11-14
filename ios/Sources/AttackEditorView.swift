@@ -6,6 +6,7 @@ struct AttackEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var attack: Attack
     @AppStorage("customFieldNames") private var customFieldNamesRaw = ""
+    @StateObject private var premium = PremiumManager.shared
     @State private var selectedFactors: Set<String> = []
 
     private var customFieldNames: [String] {
@@ -60,7 +61,7 @@ struct AttackEditorView: View {
                         }
                     }
                 }
-                if !customFieldNames.isEmpty {
+                if premium.isPremium && !customFieldNames.isEmpty {
                     Section("Campi personalizzati · Premium") {
                         ForEach(customFieldNames, id: \.self) { name in
                             TextField(name, text: customBinding(for: name))
