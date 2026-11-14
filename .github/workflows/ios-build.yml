@@ -26,8 +26,11 @@ jobs:
       - name: Generate Xcode project
         working-directory: ios
         run: xcodegen generate
-      - name: Install iOS Simulator runtime
-        run: xcodebuild -downloadPlatform iOS
+      - name: Initialize simulator services and install runtime
+        run: |
+          open -a Simulator || true
+          xcrun simctl list devices available
+          xcodebuild -downloadPlatform iOS
       - name: Build and run unit tests
         working-directory: ios
         run: xcodebuild test -project MigraNote.xcodeproj -scheme MigraNote -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath build CODE_SIGNING_ALLOWED=NO
