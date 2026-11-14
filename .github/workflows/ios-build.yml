@@ -11,10 +11,6 @@ on:
       - ".github/workflows/ios-build.yml"
   workflow_dispatch:
 
-concurrency:
-  group: migranote-ios-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-and-test:
     runs-on: macos-15
