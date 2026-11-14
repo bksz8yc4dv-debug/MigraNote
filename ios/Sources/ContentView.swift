@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var showingEditor = false
     @State private var selectedAttack: Attack?
     @State private var isUnlocked = false
+    @State private var authenticationInProgress = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
@@ -49,11 +51,21 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if !biometricLockEnabled { isUnlocked = true }
+            if biometricLockEnabled { authenticate() }
+            else { isUnlocked = true }
         }
         .onChange(of: biometricLockEnabled) { _, enabled in
             if !enabled { isUnlocked = true }
             else { authenticate() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if biometricLockEnabled {
+                if phase == .active {
+                    authenticate()
+                } else if phase == .inactive || phase == .background {
+                    isUnlocked = false
+                }
+            }
         }
     }
 
@@ -70,6 +82,7 @@ struct ContentView: View {
     }
 
     private func authenticate() {
+        guard biometricLockEnabled, !isUnlocked, !authenticationInProgress else { return }
         let authContext = LAContext()
         var error: NSError?
         guard authContext.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
@@ -77,8 +90,12 @@ struct ContentView: View {
             isUnlocked = true
             return
         }
+        authenticationInProgress = true
         authContext.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Sblocca il tuo diario MigraNote") { success, _ in
-            DispatchQueue.main.async { isUnlocked = success }
+            DispatchQueue.main.async {
+                authenticationInProgress = false
+                isUnlocked = success
+            }
         }
     }
 }
