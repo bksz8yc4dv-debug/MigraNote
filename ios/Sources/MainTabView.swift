@@ -256,7 +256,7 @@ private struct ExportView: View {
             defaultFilename: "MigraNote-backup"
         ) { result in
             if case .failure(let error) = result {
-                backupMessage = "Esportazione non riuscita: \\(error.localizedDescription)"
+                backupMessage = "Esportazione non riuscita: \(error.localizedDescription)"
             }
         }
         .fileImporter(
@@ -271,9 +271,9 @@ private struct ExportView: View {
                 let data = try Data(contentsOf: url)
                 let payload = try MigraNoteBackupDocument.decode(data: data)
                 store.replaceAll(with: payload.attacks)
-                backupMessage = "Backup importato. Sono stati ripristinati \\(payload.attacks.count) attacchi."
+                backupMessage = "Backup importato. Sono stati ripristinati \(payload.attacks.count) attacchi."
             } catch {
-                backupMessage = "Importazione non riuscita: \\(error.localizedDescription)"
+                backupMessage = "Importazione non riuscita: \(error.localizedDescription)"
             }
         }
         .alert("Backup", isPresented: Binding(
