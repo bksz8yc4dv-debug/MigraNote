@@ -9,14 +9,16 @@ final class Attack: Identifiable {
     var intensity: Int?
     var duration: String?
     var notes: String
+    var customFieldValuesJSON: String
 
-    init(timestamp: Date = .now, factors: [String] = [], intensity: Int? = nil, duration: String? = nil, notes: String = "") {
+    init(timestamp: Date = .now, factors: [String] = [], intensity: Int? = nil, duration: String? = nil, notes: String = "", customFieldValuesJSON: String = "{}") {
         self.id = UUID()
         self.timestamp = timestamp
         self.factors = factors
         self.intensity = intensity
         self.duration = duration
         self.notes = notes
+        self.customFieldValuesJSON = customFieldValuesJSON
     }
 }
 
