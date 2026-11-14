@@ -22,8 +22,14 @@ struct AttackEditorView: View {
                 Section {
                     ForEach(AttackOptions.factors, id: \.self) { factor in
                         Button {
-                            if selectedFactors.contains(factor) { selectedFactors.remove(factor) }
-                            else { selectedFactors.insert(factor) }
+                            if factor == "Nessuna causa evidente" {
+                                if selectedFactors.contains(factor) { selectedFactors.remove(factor) }
+                                else { selectedFactors = [factor] }
+                            } else {
+                                selectedFactors.remove("Nessuna causa evidente")
+                                if selectedFactors.contains(factor) { selectedFactors.remove(factor) }
+                                else { selectedFactors.insert(factor) }
+                            }
                             attack.factors = Array(selectedFactors)
                         } label: {
                             HStack {
