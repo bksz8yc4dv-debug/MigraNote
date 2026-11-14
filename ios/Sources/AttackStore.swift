@@ -36,6 +36,11 @@ final class AttackStore: ObservableObject {
         save()
     }
 
+    func replaceAll(with importedAttacks: [MigraineAttack]) {
+        attacks = importedAttacks.sorted { $0.startedAt > $1.startedAt }
+        save()
+    }
+
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([MigraineAttack].self, from: data) else { return }
