@@ -72,6 +72,11 @@ struct MainTabView: View {
             .tabItem { Label("Storico", systemImage: "list.bullet") }
 
             NavigationStack {
+                CalendarView()
+            }
+            .tabItem { Label("Calendario", systemImage: "calendar") }
+
+            NavigationStack {
                 StatsView()
                     .navigationTitle("Statistiche")
             }
@@ -82,6 +87,11 @@ struct MainTabView: View {
                     .navigationTitle("Esporta")
             }
             .tabItem { Label("Esporta", systemImage: "square.and.arrow.up") }
+
+            NavigationStack {
+                SettingsView()
+            }
+            .tabItem { Label("Altro", systemImage: "gearshape") }
         }
         .sheet(isPresented: $showEditor, onDismiss: { editingAttack = nil }) {
             if let attack = editingAttack {
