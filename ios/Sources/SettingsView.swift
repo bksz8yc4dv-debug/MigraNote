@@ -3,9 +3,15 @@ import SwiftUI
 struct SettingsView: View {
     let attacks: [Attack]
     @AppStorage("biometricLockEnabled") private var biometricLockEnabled = false
+    @AppStorage("customFieldNames") private var customFieldNamesRaw = ""
+    @State private var newCustomField = ""
     @State private var showingPremium = false
     @State private var showingExport = false
     @StateObject private var premium = PremiumManager.shared
+
+    private var customFieldNames: [String] {
+        customFieldNamesRaw.split(separator: "\n").map(String.init).filter { !$0.isEmpty }
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,6 +29,32 @@ struct SettingsView: View {
                             .foregroundStyle(premium.isPremium ? .green : .secondary)
                     }
                     Button("Gestisci Premium") { showingPremium = true }
+                }
+                if premium.isPremium {
+                    Section("Campi personalizzati · Premium") {
+                        ForEach(customFieldNames, id: \.self) { name in
+                            HStack {
+                                Text(name)
+                                Spacer()
+                                Button(role: .destructive) {
+                                    customFieldNamesRaw = customFieldNames.filter { $0 != name }.joined(separator: "\n")
+                                } label: {
+                                    Image(systemName: "minus.circle")
+                                }
+                            }
+                        }
+                        HStack {
+                            TextField("Nuovo campo", text: $newCustomField)
+                            Button("Aggiungi") {
+                                let value = newCustomField.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if !value.isEmpty && !customFieldNames.contains(value) {
+                                    customFieldNamesRaw = (customFieldNames + [value]).joined(separator: "\n")
+                                    newCustomField = ""
+                                }
+                            }
+                            .disabled(newCustomField.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
                 }
                 Section("Informazioni") {
                     LabeledContent("Versione", value: "Anteprima iOS")
@@ -47,7 +79,6 @@ struct PremiumView: View {
                     Label("Statistiche avanzate", systemImage: "chart.xyaxis.line")
                     Label("Report PDF", systemImage: "doc.richtext")
                     Label("Campi personalizzati", systemImage: "slider.horizontal.3")
-                    Label("Backup e sincronizzazione", systemImage: "icloud")
                 }
                 Section("Abbonamenti") {
                     if premium.products.isEmpty {
@@ -80,6 +111,8 @@ struct PremiumView: View {
                 }
                 Section {
                     Text("L’abbonamento si rinnova automaticamente salvo disdetta nelle impostazioni dell’account Apple.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    Text("La sincronizzazione iCloud non è ancora disponibile.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
