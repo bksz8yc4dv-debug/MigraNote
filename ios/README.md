@@ -35,7 +35,7 @@ I prodotti devono essere creati nell'account App Store Connect che pubblicherà 
 
 ## Limiti prima della distribuzione
 
-La compilazione del simulatore non equivale a una build firmata né a una pubblicazione. Per distribuire servono l'account Apple Developer del titolare, il Team ID e la firma, i prodotti e gli accordi fiscali in App Store Connect, i metadati, gli screenshot, le informazioni privacy e i recapiti reali del responsabile. Vedi `APP_STORE_CONNECT_SETUP.md`.
+La compilazione del simulatore non equivale a una build firmata né a una pubblicazione. Per distribuire servono l'account Apple Developer del titolare, il Team ID e la firma, i prodotti e gli accordi fiscali in App Store Connect, i metadati, gli screenshot, le informazioni privacy e i recapiti reali del responsabile. La pipeline Fastlane per TestFlight è predisposta: vedi `TESTFLIGHT_SETUP.md` e `APP_STORE_CONNECT_SETUP.md` per i prerequisiti e i segreti GitHub necessari.
 
 La sincronizzazione automatica iCloud non è implementata. Il backup Premium è manuale tramite file JSON, con ripristino e controllo dei duplicati.
 
