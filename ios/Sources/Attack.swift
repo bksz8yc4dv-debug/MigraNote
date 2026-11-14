@@ -2,8 +2,8 @@ import Foundation
 import SwiftData
 
 @Model
-final class Attack {
-    @Attribute(.unique) var id: UUID
+final class Attack: Identifiable {
+    var id: UUID
     var timestamp: Date
     var factors: [String]
     var intensity: Int?
