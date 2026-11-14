@@ -12,7 +12,7 @@ Il codice attuale non integra un server applicativo, un account utente, strument
 
 ## Esportazione
 
-L'utente può esportare i dati in un file CSV. Il report PDF è previsto per gli utenti Premium quando l'acquisto sarà configurato. I file vengono generati localmente e condivisi tramite il foglio di condivisione di iOS; le eventuali destinazioni scelte dall'utente sono soggette alle informative dei relativi servizi.
+L'utente può esportare i dati in CSV e, con Premium, generare report PDF e backup JSON. È possibile ripristinare un backup JSON; il ripristino aggiunge le registrazioni mancanti e non duplica quelle con lo stesso identificativo. I file vengono generati localmente e condivisi tramite il foglio di condivisione di iOS; le eventuali destinazioni scelte dall'utente sono soggette alle informative dei relativi servizi.
 
 ## Sicurezza e conservazione
 
