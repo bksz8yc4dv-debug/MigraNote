@@ -1,4 +1,4 @@
-name: iOS build
+name: iOS build and tests
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +21,13 @@ jobs:
       - name: Generate Xcode project
         working-directory: ios
         run: xcodegen generate
-      - name: Build for iOS Simulator
+      - name: Build and run unit tests
         working-directory: ios
-        run: xcodebuild -project MigraNote.xcodeproj -scheme MigraNote -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build
+        run: xcodebuild test -project MigraNote.xcodeproj -scheme MigraNote -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+      - name: Upload simulator app
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MigraNote-iOS-Simulator
+          path: ios/build/Build/Products/Debug-iphonesimulator/MigraNote.app
+          if-no-files-found: error
