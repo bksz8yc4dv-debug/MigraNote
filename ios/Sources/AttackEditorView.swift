@@ -4,29 +4,26 @@ import SwiftData
 struct AttackEditorView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-    @State private var timestamp = Date()
-    @State private var factors: Set<String> = []
-    @State private var intensity = 5.0
-    @State private var hasIntensity = false
-    @State private var duration: String?
-    @State private var notes = ""
+    @Bindable var attack: Attack
+    @State private var selectedFactors: Set<String> = []
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Data e ora") {
-                    DatePicker("Inizio dell’attacco", selection: $timestamp)
+                    DatePicker("Inizio dell’attacco", selection: $attack.timestamp)
                 }
                 Section {
                     ForEach(AttackOptions.factors, id: \.self) { factor in
                         Button {
-                            if factors.contains(factor) { factors.remove(factor) }
-                            else { factors.insert(factor) }
+                            if selectedFactors.contains(factor) { selectedFactors.remove(factor) }
+                            else { selectedFactors.insert(factor) }
+                            attack.factors = Array(selectedFactors)
                         } label: {
                             HStack {
                                 Text(factor).foregroundStyle(.primary)
                                 Spacer()
-                                if factors.contains(factor) {
+                                if selectedFactors.contains(factor) {
                                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.purple)
                                 }
                             }
@@ -35,17 +32,23 @@ struct AttackEditorView: View {
                 } header: {
                     Text("Cosa è successo prima?")
                 } footer: {
-                    Text("Puoi selezionare più fattori oppure non indicarne nessuno.")
+                    Text("Facoltativo. Puoi selezionare più fattori o completare questi dettagli in seguito.")
                 }
                 Section("Intensità del dolore") {
-                    Toggle("Indica l’intensità", isOn: $hasIntensity)
-                    if hasIntensity {
-                        Slider(value: $intensity, in: 1...10, step: 1)
-                        Text("\(Int(intensity)) / 10").font(.headline).foregroundStyle(.purple)
+                    Toggle("Indica l’intensità", isOn: Binding(
+                        get: { attack.intensity != nil },
+                        set: { attack.intensity = $0 ? 5 : nil }
+                    ))
+                    if attack.intensity != nil {
+                        Slider(value: Binding(
+                            get: { Double(attack.intensity ?? 5) },
+                            set: { attack.intensity = Int($0) }
+                        ), in: 1...10, step: 1)
+                        Text("\(attack.intensity ?? 5) / 10").font(.headline).foregroundStyle(.purple)
                     }
                 }
                 Section("Durata") {
-                    Picker("Durata", selection: $duration) {
+                    Picker("Durata", selection: $attack.duration) {
                         Text("Non indicata").tag(String?.none)
                         ForEach(AttackOptions.durations, id: \.self) { item in
                             Text(item).tag(Optional(item))
@@ -53,29 +56,21 @@ struct AttackEditorView: View {
                     }
                 }
                 Section("Note") {
-                    TextField("Scrivi quello che vuoi…", text: $notes, axis: .vertical)
+                    TextField("Scrivi quello che vuoi…", text: $attack.notes, axis: .vertical)
                         .lineLimit(3...7)
                 }
             }
-            .navigationTitle("Nuovo attacco")
+            .navigationTitle("Dettagli attacco")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Annulla") { dismiss() }
-                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Salva") {
-                        let attack = Attack(timestamp: timestamp,
-                                            factors: Array(factors),
-                                            intensity: hasIntensity ? Int(intensity) : nil,
-                                            duration: duration,
-                                            notes: notes)
-                        context.insert(attack)
+                    Button("Fine") {
                         try? context.save()
                         dismiss()
                     }
                 }
             }
+            .onAppear { selectedFactors = Set(attack.factors) }
         }
     }
 }
