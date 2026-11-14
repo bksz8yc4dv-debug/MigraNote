@@ -6,7 +6,12 @@ struct ExportView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var shareURL: URL?
     @State private var errorMessage: String?
+    @AppStorage("customFieldNames") private var customFieldNamesRaw = ""
     @StateObject private var premium = PremiumManager.shared
+
+    private var customFieldNames: [String] {
+        customFieldNamesRaw.split(separator: "\n").map(String.init).filter { !$0.isEmpty }
+    }
 
     var body: some View {
         NavigationStack {
@@ -59,14 +64,15 @@ struct ExportView: View {
     private func createPDF() {
         guard premium.isPremium else { return }
         do {
-            shareURL = try PDFExportService.createReport(attacks: attacks)
+            shareURL = try PDFExportService.createReport(attacks: attacks, customFieldNames: customFieldNames)
         } catch {
             errorMessage = "Impossibile creare il PDF: \(error.localizedDescription)"
         }
     }
 
     private var csv: String {
-        var rows = ["Data,Ora,Intensità,Durata,Fattori,Note"]
+        let headers = ["Data", "Ora", "Intensità", "Durata", "Fattori", "Note"] + customFieldNames
+        var rows = [headers.map(quote).joined(separator: ",")]
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "it_IT")
         formatter.dateFormat = "yyyy-MM-dd,HH:mm"
@@ -77,7 +83,9 @@ struct ExportView: View {
                 attack.factors.joined(separator: "; "),
                 attack.notes
             ]
-            rows.append(fields.map(quote).joined(separator: ","))
+            let data = Data(attack.customFieldValuesJSON.utf8)
+            let customValues = (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
+            rows.append((fields + customFieldNames.map { customValues[$0] ?? "" }).map(quote).joined(separator: ","))
         }
         return "\u{FEFF}" + rows.joined(separator: "\n")
     }
