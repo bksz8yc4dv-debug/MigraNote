@@ -2,6 +2,9 @@ import SwiftUI
 
 struct StatisticsView: View {
     let attacks: [Attack]
+    @StateObject private var premium = PremiumManager.shared
+    @State private var showingPremium = false
+
     private var averageIntensity: Double? {
         let values = attacks.compactMap(\.intensity)
         guard !values.isEmpty else { return nil }
@@ -27,33 +30,42 @@ struct StatisticsView: View {
                     LabeledContent("Giorni con attacchi", value: "\(attackDays)")
                     LabeledContent("Intensità media", value: averageIntensity.map { String(format: "%.1f / 10", $0) } ?? "—")
                 }
-                Section("Andamento mensile") {
-                    if monthlyCounts.isEmpty {
-                        Text("Le statistiche appariranno dopo le prime registrazioni.").foregroundStyle(.secondary)
-                    } else {
-                        ForEach(Array(monthlyCounts.enumerated()), id: \.offset) { _, item in
-                            HStack {
-                                Text(item.month)
-                                Spacer()
-                                Text("\(item.count)").fontWeight(.semibold).monospacedDigit()
+                if premium.isPremium {
+                    Section("Andamento mensile") {
+                        if monthlyCounts.isEmpty {
+                            Text("Le statistiche appariranno dopo le prime registrazioni.").foregroundStyle(.secondary)
+                        } else {
+                            ForEach(Array(monthlyCounts.enumerated()), id: \.offset) { _, item in
+                                HStack {
+                                    Text(item.month)
+                                    Spacer()
+                                    Text("\(item.count)").fontWeight(.semibold).monospacedDigit()
+                                }
                             }
                         }
                     }
-                }
-                Section("Fattori registrati") {
-                    let counts = Dictionary(grouping: attacks.flatMap(\.factors), by: { $0 })
-                        .mapValues(\.count)
-                        .sorted { $0.value > $1.value }
-                    if counts.isEmpty {
-                        Text("Nessun fattore indicato.").foregroundStyle(.secondary)
-                    } else {
-                        ForEach(counts, id: \.key) { factor, count in
-                            LabeledContent(factor, value: "\(count)")
+                    Section("Fattori registrati") {
+                        let counts = Dictionary(grouping: attacks.flatMap(\.factors), by: { $0 })
+                            .mapValues(\.count)
+                            .sorted { $0.value > $1.value }
+                        if counts.isEmpty {
+                            Text("Nessun fattore indicato.").foregroundStyle(.secondary)
+                        } else {
+                            ForEach(counts, id: \.key) { factor, count in
+                                LabeledContent(factor, value: "\(count)")
+                            }
                         }
+                    }
+                } else {
+                    Section("Statistiche avanzate · Premium") {
+                        Text("Sblocca andamento mensile e analisi dei fattori registrati.")
+                            .foregroundStyle(.secondary)
+                        Button("Scopri Premium") { showingPremium = true }
                     }
                 }
             }
             .navigationTitle("Statistiche")
+            .sheet(isPresented: $showingPremium) { PremiumView() }
         }
     }
 }
