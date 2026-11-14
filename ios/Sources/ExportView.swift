@@ -1,11 +1,16 @@
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
+import SwiftData
 
 struct ExportView: View {
     let attacks: [Attack]
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @State private var shareURL: URL?
     @State private var errorMessage: String?
+    @State private var statusMessage: String?
+    @State private var showingImporter = false
     @AppStorage("customFieldNames") private var customFieldNamesRaw = ""
     @StateObject private var premium = PremiumManager.shared
 
@@ -29,9 +34,26 @@ struct ExportView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(!premium.isPremium)
+                Button(action: createBackup) {
+                    Label("Crea backup JSON (Premium)", systemImage: "externaldrive")
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!premium.isPremium)
+                Button {
+                    showingImporter = true
+                } label: {
+                    Label("Ripristina da backup (Premium)", systemImage: "arrow.counterclockwise.icloud")
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!premium.isPremium)
                 if !premium.isPremium {
-                    Text("Il report PDF è una funzione Premium. Puoi comunque esportare gratuitamente il diario in CSV.")
+                    Text("PDF e backup/ripristino sono funzioni Premium. Il CSV resta gratuito.")
                         .font(.footnote).foregroundStyle(.secondary)
+                }
+                if let statusMessage {
+                    Text(statusMessage).font(.footnote).foregroundStyle(.green)
                 }
                 if let errorMessage {
                     Text(errorMessage).font(.footnote).foregroundStyle(.red)
@@ -48,6 +70,12 @@ struct ExportView: View {
             )) {
                 if let shareURL { ShareSheet(items: [shareURL]) }
             }
+            .fileImporter(
+                isPresented: $showingImporter,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false,
+                onCompletion: restoreBackup
+            )
         }
     }
 
@@ -67,6 +95,38 @@ struct ExportView: View {
             shareURL = try PDFExportService.createReport(attacks: attacks, customFieldNames: customFieldNames)
         } catch {
             errorMessage = "Impossibile creare il PDF: \(error.localizedDescription)"
+        }
+    }
+
+    private func createBackup() {
+        guard premium.isPremium else { return }
+        do {
+            shareURL = try BackupService.createFile(attacks: attacks)
+        } catch {
+            errorMessage = "Impossibile creare il backup: \(error.localizedDescription)"
+        }
+    }
+
+    private func restoreBackup(_ result: Result<[URL], Error>) {
+        guard premium.isPremium else { return }
+        do {
+            let urls = try result.get()
+            guard let url = urls.first else { return }
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+            let payload = try BackupService.decode(Data(contentsOf: url))
+            var knownIDs = Set(attacks.map(\.id))
+            var restored = 0
+            for record in payload.attacks where knownIDs.insert(record.id).inserted {
+                modelContext.insert(record.makeAttack())
+                restored += 1
+            }
+            try modelContext.save()
+            statusMessage = "Ripristinate \(restored) registrazioni. I dati già presenti non sono stati duplicati."
+            errorMessage = nil
+        } catch {
+            errorMessage = "Ripristino non riuscito: \(error.localizedDescription)"
+            statusMessage = nil
         }
     }
 
