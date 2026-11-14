@@ -8,6 +8,7 @@ Questa cartella contiene la base SwiftUI dell'app iOS. La versione web in `index
 - Salvataggio locale degli attacchi sul dispositivo.
 - Home, storico, calendario mensile e statistiche essenziali.
 - Esportazione PDF e CSV tramite il foglio Condividi di iOS.
+- Backup completo JSON con esportazione e ripristino; l'importazione sostituisce i dati correnti dopo la selezione esplicita del file.
 - Schermata privacy e impostazioni.
 - Struttura acquisti in-app con StoreKit 2 e ripristino acquisti.
 
@@ -30,6 +31,6 @@ Gli identificativi attesi sono:
 Devono essere creati come abbonamenti auto-rinnovabili in App Store Connect, con prezzi, durata, localizzazioni e stato di disponibilità corretti. Fino a quel momento l'app mostrerà che i prodotti non sono configurati e gli acquisti non saranno disponibili.
 
 ## Stato e verifiche necessarie
-Questa è una base di sviluppo, non una build compilata o collaudata. Non è stato possibile eseguire Xcode in questo ambiente. Prima della distribuzione servono build e test su Xcode, test degli acquisti con StoreKit Sandbox, verifica del flusso PDF/CSV, onboarding definitivo, backup iCloud e informativa privacy completa.
+Questa è una base di sviluppo, non una build compilata o collaudata. Non è stato possibile eseguire Xcode in questo ambiente. È stato aggiunto un workflow GitHub Actions per generare il progetto e tentare una build per iOS Simulator su macOS. Il risultato va controllato nella scheda Actions del repository. Prima della distribuzione servono inoltre test su dispositivo, test degli acquisti con StoreKit Sandbox, verifica dei flussi PDF/CSV/JSON, onboarding definitivo, eventuale sincronizzazione iCloud e informativa privacy completa.
 
-I dati di questa versione sono conservati localmente tramite UserDefaults. Non vengono inviati a un server. La sincronizzazione iCloud non è ancora implementata.
+I dati di questa versione sono conservati localmente tramite UserDefaults. Non vengono inviati a un server. Il backup JSON è manuale e può essere salvato in File/iCloud Drive dall'utente. La sincronizzazione automatica tra dispositivi tramite iCloud non è ancora implementata.
