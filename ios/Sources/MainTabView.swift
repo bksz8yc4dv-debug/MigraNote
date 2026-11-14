@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private let factorsList = ["Sforzo fisico", "Stress", "Poco sonno", "Stanchezza", "Pasto saltato", "Nessuna causa evidente", "Altro"]
 
@@ -218,16 +219,70 @@ private struct ExportView: View {
     @EnvironmentObject private var store: AttackStore
     @State private var pdfURL: URL?
     @State private var csvURL: URL?
+    @State private var showBackupExporter = false
+    @State private var showBackupImporter = false
+    @State private var backupMessage: String?
 
     var body: some View {
         List {
-            Section("I tuoi dati") {
-                Text("I dati restano salvati su questo iPhone. Puoi esportarli quando vuoi.")
+            Section("Report") {
                 Button("Prepara report PDF") { pdfURL = ExportService.pdf(store.attacks) }
                 if let pdfURL { ShareLink(item: pdfURL) { Label("Condividi PDF", systemImage: "doc.richtext") } }
                 Button("Prepara file CSV") { csvURL = ExportService.csv(store.attacks) }
                 if let csvURL { ShareLink(item: csvURL) { Label("Condividi CSV", systemImage: "tablecells") } }
             }
+
+            Section("Backup completo") {
+                Text("Il backup JSON contiene tutti gli attacchi e i relativi dettagli. Salvalo in File o in un altro spazio sicuro.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Button {
+                    showBackupExporter = true
+                } label: {
+                    Label("Esporta backup JSON", systemImage: "externaldrive")
+                }
+                Button(role: .destructive) {
+                    showBackupImporter = true
+                } label: {
+                    Label("Importa backup JSON", systemImage: "square.and.arrow.down")
+                }
+                Text("Attenzione: importare un backup sostituisce tutti gli attacchi attualmente presenti su questo iPhone.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+        .fileExporter(
+            isPresented: $showBackupExporter,
+            document: MigraNoteBackupDocument(attacks: store.attacks),
+            contentType: .json,
+            defaultFilename: "MigraNote-backup"
+        ) { result in
+            if case .failure(let error) = result {
+                backupMessage = "Esportazione non riuscita: \\(error.localizedDescription)"
+            }
+        }
+        .fileImporter(
+            isPresented: $showBackupImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            do {
+                guard let url = try result.get().first else { return }
+                let accessed = url.startAccessingSecurityScopedResource()
+                defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+                let data = try Data(contentsOf: url)
+                let payload = try MigraNoteBackupDocument.decode(data: data)
+                store.replaceAll(with: payload.attacks)
+                backupMessage = "Backup importato. Sono stati ripristinati \\(payload.attacks.count) attacchi."
+            } catch {
+                backupMessage = "Importazione non riuscita: \\(error.localizedDescription)"
+            }
+        }
+        .alert("Backup", isPresented: Binding(
+            get: { backupMessage != nil },
+            set: { if !$0 { backupMessage = nil } }
+        )) {
+            Button("OK") { backupMessage = nil }
+        } message: {
+            Text(backupMessage ?? "")
         }
     }
 }
