@@ -28,19 +28,24 @@ struct MigraNoteBackupDocument: FileDocument {
         guard let data = configuration.file.regularFileContents else {
             throw CocoaError(.fileReadCorruptFile)
         }
-        let decoded = try JSONDecoder().decode(MigraNoteBackupPayload.self, from: data)
-        guard decoded.formatVersion == 1 else {
-            throw BackupError.unsupportedVersion
-        }
-        guard decoded.attacks.count <= 100_000 else {
-            throw BackupError.invalidContent
-        }
-        let identifiers = decoded.attacks.map(\.id)
+        self.payload = try Self.decode(data: data)
+    }
+
+    static func decode(data: Data) throws -> MigraNoteBackupPayload {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(MigraNoteBackupPayload.self, from: data)
+        guard decoded.formatVersion == 1 else { throw BackupError.unsupportedVersion }
+        guard decoded.attacks.count <= 100_000 else { throw BackupError.invalidContent }
+        let identifiers = decoded.attacks.map(\\.id)
         guard Set(identifiers).count == identifiers.count,
-              decoded.attacks.allSatisfy({ (1...10).contains($0.intensity ?? 5) && ($0.durationMinutes ?? 0) >= 0 }) else {
+              decoded.attacks.allSatisfy({
+                  ($0.intensity == nil || (1...10).contains($0.intensity!)) &&
+                  ($0.durationMinutes ?? 0) >= 0
+              }) else {
             throw BackupError.invalidContent
         }
-        self.payload = decoded
+        return decoded
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
