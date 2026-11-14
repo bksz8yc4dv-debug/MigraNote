@@ -40,7 +40,8 @@ struct SettingsView: View {
             Section("Privacy") {
                 Label("I dati degli attacchi sono salvati localmente su questo iPhone.", systemImage: "iphone")
                 Label("Questa versione non invia i dati a server esterni.", systemImage: "lock.shield")
-                Label("Puoi esportare i tuoi dati in PDF o CSV dalla scheda Esporta.", systemImage: "square.and.arrow.up")
+                Label("Puoi esportare report PDF/CSV e creare un backup completo JSON dalla scheda Esporta.", systemImage: "square.and.arrow.up")
+                Label("La sincronizzazione automatica iCloud non è ancora attiva.", systemImage: "icloud.slash")
             }
 
             Section("Informazioni") {
