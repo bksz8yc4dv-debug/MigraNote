@@ -10,6 +10,15 @@ struct StatisticsView: View {
     private var attackDays: Int {
         Set(attacks.map { Calendar.current.startOfDay(for: $0.timestamp) }).count
     }
+    private var monthlyCounts: [(month: String, count: Int)] {
+        let grouped = Dictionary(grouping: attacks) {
+            Calendar.current.dateInterval(of: .month, for: $0.timestamp)?.start ?? $0.timestamp
+        }
+        return grouped.keys.sorted().suffix(6).map { date in
+            (month: date.formatted(.dateTime.month(.abbreviated).year()), count: grouped[date]?.count ?? 0)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -17,6 +26,19 @@ struct StatisticsView: View {
                     LabeledContent("Attacchi totali", value: "\(attacks.count)")
                     LabeledContent("Giorni con attacchi", value: "\(attackDays)")
                     LabeledContent("Intensità media", value: averageIntensity.map { String(format: "%.1f / 10", $0) } ?? "—")
+                }
+                Section("Andamento mensile") {
+                    if monthlyCounts.isEmpty {
+                        Text("Le statistiche appariranno dopo le prime registrazioni.").foregroundStyle(.secondary)
+                    } else {
+                        ForEach(Array(monthlyCounts.enumerated()), id: \.offset) { _, item in
+                            HStack {
+                                Text(item.month)
+                                Spacer()
+                                Text("\(item.count)").fontWeight(.semibold).monospacedDigit()
+                            }
+                        }
+                    }
                 }
                 Section("Fattori registrati") {
                     let counts = Dictionary(grouping: attacks.flatMap(\.factors), by: { $0 })
