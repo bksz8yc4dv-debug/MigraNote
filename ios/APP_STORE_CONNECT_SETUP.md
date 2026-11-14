@@ -40,6 +40,6 @@ Servono informazioni reali del titolare che non vanno inventate:
 
 ## Funzioni non attive da non dichiarare come disponibili
 
-- iCloud Sync/backup: non configurato in questa versione.
-- Campi personalizzati: non implementati.
+- Sincronizzazione automatica iCloud: non implementata; è disponibile il backup/ripristino manuale JSON Premium.
+- Campi personalizzati: implementati e riservati a Premium.
 - PDF Premium e abbonamenti: codice presente; necessitano di prodotti Apple configurati e test reali.
