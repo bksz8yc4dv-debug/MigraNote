@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 enum PDFExportService {
-    static func createReport(attacks: [Attack]) throws -> URL {
+    static func createReport(attacks: [Attack], customFieldNames: [String] = []) throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("MigraNote-Report.pdf")
         let page = CGRect(x: 0, y: 0, width: 595, height: 842)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
@@ -35,7 +35,14 @@ enum PDFExportService {
             addText("MigraNote", font: .boldSystemFont(ofSize: 25), color: .systemPurple, gap: 4)
             addText("Report del diario dell’emicrania", font: .systemFont(ofSize: 13), color: .secondaryLabel)
             addText("Esportato il \(Date.now.formatted(date: .long, time: .shortened))", font: .systemFont(ofSize: 10), color: .secondaryLabel, gap: 18)
-            addText("Totale registrazioni: \(attacks.count)", font: .boldSystemFont(ofSize: 14), gap: 16)
+            addText("Totale registrazioni: \(attacks.count)", font: .boldSystemFont(ofSize: 14), gap: 5)
+            let intensities = attacks.compactMap(\.intensity)
+            if !intensities.isEmpty {
+                let average = Double(intensities.reduce(0, +)) / Double(intensities.count)
+                addText(String(format: "Intensità media registrata: %.1f / 10", average), font: .systemFont(ofSize: 11), gap: 14)
+            } else {
+                y += 10
+            }
 
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "it_IT")
@@ -47,6 +54,13 @@ enum PDFExportService {
                 addText("Intensità: \(attack.intensity.map { "\($0)/10" } ?? "non indicata")  •  Durata: \(attack.duration ?? "non indicata")", font: .systemFont(ofSize: 10), gap: 3)
                 if !attack.factors.isEmpty {
                     addText("Fattori: \(attack.factors.joined(separator: ", "))", font: .systemFont(ofSize: 10), gap: 3)
+                }
+                let customData = Data(attack.customFieldValuesJSON.utf8)
+                let customValues = (try? JSONDecoder().decode([String: String].self, from: customData)) ?? [:]
+                for field in customFieldNames {
+                    if let value = customValues[field], !value.isEmpty {
+                        addText("\(field): \(value)", font: .systemFont(ofSize: 10), gap: 3)
+                    }
                 }
                 if !attack.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     addText("Note: \(attack.notes)", font: .systemFont(ofSize: 10), gap: 10)
