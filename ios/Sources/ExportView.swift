@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 import UIKit
 
 struct ExportView: View {
@@ -7,35 +6,62 @@ struct ExportView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var shareURL: URL?
     @State private var errorMessage: String?
+    @StateObject private var premium = PremiumManager.shared
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Text("\(attacks.count) registrazioni disponibili per l’esportazione.")
+                Text("\(attacks.count) registrazioni disponibili.")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Button {
-                    do {
-                        let url = FileManager.default.temporaryDirectory.appendingPathComponent("migranote.csv")
-                        try csv.write(to: url, atomically: true, encoding: .utf8)
-                        shareURL = url
-                    } catch {
-                        errorMessage = error.localizedDescription
-                    }
-                } label: {
-                    Label("Crea e condividi CSV", systemImage: "square.and.arrow.up")
-                        .frame(maxWidth: .infinity, minHeight: 52)
+                Button(action: createCSV) {
+                    Label("Crea e condividi CSV", systemImage: "tablecells")
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                }
+                .buttonStyle(.bordered)
+                Button(action: createPDF) {
+                    Label("Crea report PDF (Premium)", systemImage: "doc.richtext")
+                        .frame(maxWidth: .infinity, minHeight: 50)
                 }
                 .buttonStyle(.borderedProminent)
-                if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
+                .disabled(!premium.isPremium)
+                if !premium.isPremium {
+                    Text("Il report PDF è una funzione Premium. Puoi comunque esportare gratuitamente il diario in CSV.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                if let errorMessage {
+                    Text(errorMessage).font(.footnote).foregroundStyle(.red)
+                }
                 Spacer()
             }
             .padding()
             .navigationTitle("Esportazione")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Chiudi") { dismiss() } } }
-            .sheet(item: Binding(get: { shareURL.map(ShareFile.init) }, set: { shareURL = $0?.url })) { file in
-                ShareSheet(items: [file.url])
+            .sheet(isPresented: Binding(
+                get: { shareURL != nil },
+                set: { if !$0 { shareURL = nil } }
+            )) {
+                if let shareURL { ShareSheet(items: [shareURL]) }
             }
+        }
+    }
+
+    private func createCSV() {
+        do {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("migranote.csv")
+            try csv.write(to: url, atomically: true, encoding: .utf8)
+            shareURL = url
+        } catch {
+            errorMessage = "Impossibile creare il CSV: \(error.localizedDescription)"
+        }
+    }
+
+    private func createPDF() {
+        guard premium.isPremium else { return }
+        do {
+            shareURL = try PDFExportService.createReport(attacks: attacks)
+        } catch {
+            errorMessage = "Impossibile creare il PDF: \(error.localizedDescription)"
         }
     }
 
@@ -45,8 +71,7 @@ struct ExportView: View {
         formatter.locale = Locale(identifier: "it_IT")
         formatter.dateFormat = "yyyy-MM-dd,HH:mm"
         for attack in attacks {
-            let date = formatter.string(from: attack.timestamp)
-            let fields = date.components(separatedBy: ",") + [
+            let fields = formatter.string(from: attack.timestamp).components(separatedBy: ",") + [
                 attack.intensity.map(String.init) ?? "",
                 attack.duration ?? "",
                 attack.factors.joined(separator: "; "),
@@ -58,15 +83,8 @@ struct ExportView: View {
     }
 
     private func quote(_ value: String) -> String {
-        let safe = value.replacingOccurrences(of: "\"", with: "\"\"")
-        return "\"" + safe + "\""
+        "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
     }
-}
-
-private struct ShareFile: Identifiable {
-    let id = UUID()
-    let url: URL
-    init(_ url: URL) { self.url = url }
 }
 
 private struct ShareSheet: UIViewControllerRepresentable {
