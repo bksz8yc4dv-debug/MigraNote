@@ -5,7 +5,12 @@ struct AttackEditorView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Bindable var attack: Attack
+    @AppStorage("customFieldNames") private var customFieldNamesRaw = ""
     @State private var selectedFactors: Set<String> = []
+
+    private var customFieldNames: [String] {
+        customFieldNamesRaw.split(separator: "\n").map(String.init).filter { !$0.isEmpty }
+    }
 
     var body: some View {
         NavigationStack {
@@ -32,7 +37,7 @@ struct AttackEditorView: View {
                 } header: {
                     Text("Cosa è successo prima?")
                 } footer: {
-                    Text("Facoltativo. Puoi selezionare più fattori o completare questi dettagli in seguito.")
+                    Text("Facoltativo. Puoi completare questi dettagli anche in seguito.")
                 }
                 Section("Intensità del dolore") {
                     Toggle("Indica l’intensità", isOn: Binding(
@@ -55,6 +60,13 @@ struct AttackEditorView: View {
                         }
                     }
                 }
+                if !customFieldNames.isEmpty {
+                    Section("Campi personalizzati · Premium") {
+                        ForEach(customFieldNames, id: \.self) { name in
+                            TextField(name, text: customBinding(for: name))
+                        }
+                    }
+                }
                 Section("Note") {
                     TextField("Scrivi quello che vuoi…", text: $attack.notes, axis: .vertical)
                         .lineLimit(3...7)
@@ -72,5 +84,24 @@ struct AttackEditorView: View {
             }
             .onAppear { selectedFactors = Set(attack.factors) }
         }
+    }
+
+    private func customBinding(for name: String) -> Binding<String> {
+        Binding(
+            get: {
+                let data = Data(attack.customFieldValuesJSON.utf8)
+                let values = (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
+                return values[name] ?? ""
+            },
+            set: { value in
+                let data = Data(attack.customFieldValuesJSON.utf8)
+                var values = (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
+                values[name] = value
+                if let encoded = try? JSONEncoder().encode(values),
+                   let string = String(data: encoded, encoding: .utf8) {
+                    attack.customFieldValuesJSON = string
+                }
+            }
+        )
     }
 }
