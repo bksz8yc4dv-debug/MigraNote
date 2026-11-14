@@ -2,19 +2,27 @@ import SwiftUI
 
 struct SettingsView: View {
     let attacks: [Attack]
+    @AppStorage("biometricLockEnabled") private var biometricLockEnabled = false
     @State private var showingPremium = false
     @State private var showingExport = false
+    @StateObject private var premium = PremiumManager.shared
+
     var body: some View {
         NavigationStack {
             List {
                 Section("Dati e privacy") {
-                    Text("Le registrazioni sono archiviate localmente sul dispositivo. Non è richiesto un account e non vengono mostrati annunci.")
-                    Button("Esporta diario (CSV)") { showingExport = true }
+                    Text("Il diario è archiviato sul dispositivo. Non serve creare un account e MigraNote non mostra pubblicità.")
+                    Toggle("Proteggi con Face ID", isOn: $biometricLockEnabled)
+                    Button("Esporta diario (CSV / PDF)") { showingExport = true }
                 }
                 Section("MigraNote Premium") {
-                    Button("Scopri Premium") { showingPremium = true }
-                    Text("Gli acquisti mensili e annuali saranno attivati solo dopo la configurazione dei prodotti Apple e la verifica con StoreKit.")
-                        .font(.footnote).foregroundStyle(.secondary)
+                    HStack {
+                        Text("Stato")
+                        Spacer()
+                        Text(premium.isPremium ? "Attivo" : "Versione gratuita")
+                            .foregroundStyle(premium.isPremium ? .green : .secondary)
+                    }
+                    Button("Gestisci Premium") { showingPremium = true }
                 }
                 Section("Informazioni") {
                     LabeledContent("Versione", value: "Anteprima iOS")
@@ -30,23 +38,54 @@ struct SettingsView: View {
 }
 
 struct PremiumView: View {
+    @StateObject private var premium = PremiumManager.shared
+
     var body: some View {
         NavigationStack {
             List {
-                Section("Funzioni previste") {
+                Section("Funzioni Premium") {
                     Label("Statistiche avanzate", systemImage: "chart.xyaxis.line")
-                    Label("Report PDF personalizzabili", systemImage: "doc.richtext")
-                    Label("Esportazione CSV", systemImage: "tablecells")
+                    Label("Report PDF", systemImage: "doc.richtext")
                     Label("Campi personalizzati", systemImage: "slider.horizontal.3")
-                    Label("Backup e sincronizzazione iCloud", systemImage: "icloud")
+                    Label("Backup e sincronizzazione", systemImage: "icloud")
                 }
                 Section("Abbonamenti") {
-                    Text("Mensile e annuale non ancora disponibili. L’attivazione richiede prodotti configurati in App Store Connect e integrazione StoreKit 2.")
-                        .foregroundStyle(.secondary)
+                    if premium.products.isEmpty {
+                        Text("Gli abbonamenti non sono ancora disponibili. I prodotti devono essere configurati e approvati in App Store Connect.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    ForEach(premium.products, id: \.id) { product in
+                        Button {
+                            Task { await premium.purchase(product) }
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(product.id == PremiumManager.monthlyID ? "Mensile" : "Annuale")
+                                        .foregroundStyle(.primary)
+                                    Text(product.displayPrice).font(.caption).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text("Abbonati").fontWeight(.semibold)
+                            }
+                        }
+                        .disabled(premium.isPremium)
+                    }
+                    Button("Ripristina acquisti") { Task { await premium.restore() } }
+                    if premium.isPremium {
+                        Label("Premium attivo", systemImage: "checkmark.seal.fill").foregroundStyle(.green)
+                    }
+                    if let message = premium.message {
+                        Text(message).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                Section {
+                    Text("L’abbonamento si rinnova automaticamente salvo disdetta nelle impostazioni dell’account Apple.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Premium")
+            .navigationTitle("MigraNote Premium")
             .navigationBarTitleDisplayMode(.inline)
+            .task { await premium.loadProducts(); await premium.refreshEntitlements() }
         }
     }
 }
