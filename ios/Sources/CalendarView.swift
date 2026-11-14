@@ -28,7 +28,7 @@ struct CalendarView: View {
                     Button { month = Calendar.current.date(byAdding: .month, value: 1, to: month) ?? month } label: { Image(systemName: "chevron.right") }
                 }
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(["L", "M", "M", "G", "V", "S", "D"], id: \.self + UUID().uuidString) { day in
+                    ForEach(Array(["L", "M", "M", "G", "V", "S", "D"].enumerated()), id: \.offset) { _, day in
                         Text(day).font(.caption.bold()).frame(maxWidth: .infinity)
                     }
                     ForEach(Array(days.enumerated()), id: \.offset) { _, date in
