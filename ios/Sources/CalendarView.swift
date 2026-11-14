@@ -34,11 +34,11 @@ struct CalendarView: View {
             .padding(.horizontal)
 
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(Array(weekdays.enumerated()), id: \.offset) { _, day in
-                    Text(day).font(.caption.bold()).foregroundStyle(.secondary)
+                ForEach(weekdays.indices, id: \.self) { index in
+                    Text(weekdays[index]).font(.caption.bold()).foregroundStyle(.secondary)
                 }
-                ForEach(Array(days.enumerated()), id: \.offset) { _, date in
-                    if let date {
+                ForEach(days.indices, id: \.self) { index in
+                    if let date = days[index] {
                         let count = store.attacks.filter { Calendar.current.isDate($0.startedAt, inSameDayAs: date) }.count
                         Button { selectedDate = date } label: {
                             VStack(spacing: 4) {
