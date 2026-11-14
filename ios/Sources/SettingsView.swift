@@ -79,6 +79,7 @@ struct PremiumView: View {
                     Label("Statistiche avanzate", systemImage: "chart.xyaxis.line")
                     Label("Report PDF", systemImage: "doc.richtext")
                     Label("Campi personalizzati", systemImage: "slider.horizontal.3")
+                    Label("Backup e ripristino manuale", systemImage: "externaldrive")
                 }
                 Section("Abbonamenti") {
                     if premium.products.isEmpty {
@@ -112,7 +113,7 @@ struct PremiumView: View {
                 Section {
                     Text("L’abbonamento si rinnova automaticamente salvo disdetta nelle impostazioni dell’account Apple.")
                         .font(.footnote).foregroundStyle(.secondary)
-                    Text("La sincronizzazione iCloud non è ancora disponibile.")
+                    Text("La sincronizzazione automatica iCloud non è ancora disponibile; il backup manuale è disponibile nella sezione Esportazione.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
