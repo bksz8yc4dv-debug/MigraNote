@@ -8,8 +8,8 @@ Progetto nativo SwiftUI per iOS 17 o successivo. Il progetto Xcode viene generat
 - Modifica di data/ora, fattori, intensità, durata e note.
 - Storico modificabile ed eliminabile.
 - Calendario mensile e riepilogo statistico.
-- Esportazione CSV gratuita e report PDF riservato a Premium.
-- Protezione locale tramite autenticazione del dispositivo (Face ID o codice).
+- Esportazione CSV gratuita; report PDF e backup/ripristino JSON manuale riservati a Premium.
+- Campi personalizzati configurabili con Premium.\n- Protezione locale tramite autenticazione del dispositivo (Face ID o codice).
 - Abbonamenti StoreKit 2 con verifica delle transazioni e ripristino acquisti.
 
 ## Compilazione locale
@@ -37,7 +37,7 @@ I prodotti devono essere creati nell'account App Store Connect che pubblicherà 
 
 La compilazione del simulatore non equivale a una build firmata né a una pubblicazione. Per distribuire servono l'account Apple Developer del titolare, il Team ID e la firma, i prodotti e gli accordi fiscali in App Store Connect, i metadati, gli screenshot, le informazioni privacy e i recapiti reali del responsabile. Vedi `APP_STORE_CONNECT_SETUP.md`.
 
-La sincronizzazione iCloud e i campi personalizzati sono indicati come sviluppi Premium ma non vengono presentati come già attivi: richiedono progettazione, configurazione delle capability e test su dispositivi reali.
+La sincronizzazione automatica iCloud non è implementata. Il backup Premium è manuale tramite file JSON, con ripristino e controllo dei duplicati.
 
 ## Dati e uso sanitario
 
