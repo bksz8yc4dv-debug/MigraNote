@@ -37,7 +37,7 @@ struct MigraNoteBackupDocument: FileDocument {
         let decoded = try decoder.decode(MigraNoteBackupPayload.self, from: data)
         guard decoded.formatVersion == 1 else { throw BackupError.unsupportedVersion }
         guard decoded.attacks.count <= 100_000 else { throw BackupError.invalidContent }
-        let identifiers = decoded.attacks.map(\\.id)
+        let identifiers = decoded.attacks.map(\.id)
         guard Set(identifiers).count == identifiers.count,
               decoded.attacks.allSatisfy({
                   ($0.intensity == nil || (1...10).contains($0.intensity!)) &&
