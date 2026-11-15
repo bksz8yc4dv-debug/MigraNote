@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0876d9"/><stop offset=".52" stop-color="#063b87"/><stop offset="1" stop-color="#06183f"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#ff5b42" stop-opacity=".9"/><stop offset="1" stop-color="#ff5b42" stop-opacity="0"/></radialGradient>
+ <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#b8d9ff"/></linearGradient>
+ <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#62e4ff"/><stop offset="1" stop-color="#078be5"/></linearGradient>
+</defs>
+<rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
+<path d="M650 100 C890 90 965 260 950 460" fill="none" stroke="#1a9af2" stroke-width="18" opacity=".5"/>
+<circle cx="500" cy="315" r="235" fill="url(#glow)"/>
+<circle cx="500" cy="315" r="150" fill="none" stroke="#ff9c8c" stroke-width="20" opacity=".55"/>
+<circle cx="500" cy="315" r="105" fill="none" stroke="#ff7766" stroke-width="23" opacity=".8"/>
+<circle cx="500" cy="315" r="60" fill="#fa4935"/>
+<path d="M230 165 L310 220 L270 240 L355 310 L292 225 L330 205 Z" fill="#ff5547"/>
+<path d="M390 85 L448 158 L415 166 L465 240 L420 165 L444 150 Z" fill="#ff5547"/>
+<!-- profile and shoulder -->
+<path d="M205 820 C230 700 270 620 340 570 C390 535 420 505 415 455 C405 410 375 385 385 330 C395 215 480 150 585 175 C690 200 735 300 705 390 C690 430 675 455 700 490 C720 520 755 520 770 555 C785 590 760 620 720 630 C705 680 680 730 625 775 L580 820 Z" fill="url(#skin)" stroke="#09265c" stroke-width="18" stroke-linejoin="round"/>
+<!-- hair/back silhouette -->
+<path d="M385 350 C380 220 470 130 590 155 C690 175 760 265 730 380 C710 315 670 265 610 250 C565 238 520 265 495 300 C465 338 435 370 385 385 Z" fill="#f7fbff" opacity=".95"/>
+<!-- hand at temple -->
+<path d="M145 760 C170 680 195 580 240 500 C270 450 320 405 355 380 C372 368 390 375 392 392 C395 410 365 435 340 460 C380 435 410 415 425 430 C440 445 418 470 390 495 C420 480 445 475 452 492 C460 510 435 530 405 550 C385 570 370 600 365 635 L350 820 L160 850 Z" fill="url(#skin)" stroke="#09265c" stroke-width="16" stroke-linejoin="round"/>
+<!-- calendar -->
+<rect x="650" y="520" width="280" height="275" rx="38" fill="#f5fbff" stroke="#09265c" stroke-width="18"/>
+<path d="M650 595 H930" stroke="#1c9be9" stroke-width="18"/>
+<path d="M715 500 V555 M865 500 V555" stroke="#fff" stroke-width="28" stroke-linecap="round"/>
+<g fill="#1766b7"><rect x="700" y="635" width="42" height="42" rx="10"/><rect x="770" y="635" width="42" height="42" rx="10"/><rect x="840" y="635" width="42" height="42" rx="10"/><rect x="700" y="705" width="42" height="42" rx="10"/><rect x="770" y="705" width="42" height="42" rx="10"/></g>
+<circle cx="875" cy="755" r="75" fill="url(#cyan)" stroke="#09265c" stroke-width="14"/>
+<path d="M875 710 V755 H910" fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- wordmark -->
+<text x="512" y="920" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="105" font-weight="800" letter-spacing="-5"><tspan fill="#fff">Migra</tspan><tspan fill="#4edcff">Note</tspan></text>
+<path d="M235 950 Q520 900 810 950" fill="none" stroke="#ff5948" stroke-width="12" stroke-linecap="round"/>
+</svg>

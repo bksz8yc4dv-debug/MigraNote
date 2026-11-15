@@ -17,8 +17,10 @@ jobs:
       - name: Install Fastlane
         working-directory: ios
         run: bundle install
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Install XcodeGen and SVG converter
+        run: brew install xcodegen librsvg
+      - name: Generate app icon
+        run: bash ios/scripts/generate-app-icon.sh
       - name: Generate Xcode project
         working-directory: ios
         run: xcodegen generate
