@@ -36,6 +36,11 @@ jobs:
       - name: Build and run unit tests
         working-directory: ios
         run: xcodebuild test -project MigraNote.xcodeproj -scheme MigraNote -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+      - name: Verify compiled asset catalog
+        run: |
+          APP="ios/build/Build/Products/Debug-iphonesimulator/MigraNote.app"
+          test -s "$APP/Assets.car"
+          echo "Assets.car presente: icona e risorse compilate incluse."
       - name: Upload simulator app
         if: success()
         uses: actions/upload-artifact@v4
