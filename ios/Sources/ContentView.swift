@@ -10,6 +10,9 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showingEditor = false
     @State private var selectedAttack: Attack?
+    @State private var isNewAttack = false
+    @State private var showingRecordError = false
+    @State private var recordErrorMessage = ""
     @State private var isUnlocked = false
     @State private var authenticationInProgress = false
     @Environment(\.scenePhase) private var scenePhase
@@ -45,10 +48,18 @@ struct ContentView: View {
                     .zIndex(2)
             }
         }
-        .sheet(isPresented: $showingEditor) {
+        .sheet(isPresented: $showingEditor, onDismiss: {
+            selectedAttack = nil
+            isNewAttack = false
+        }) {
             if let selectedAttack {
-                AttackEditorView(attack: selectedAttack)
+                AttackEditorView(attack: selectedAttack, isNewAttack: isNewAttack)
             }
+        }
+        .alert("Attacco non registrato", isPresented: $showingRecordError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(recordErrorMessage)
         }
         .onAppear {
             if biometricLockEnabled { authenticate() }
@@ -70,14 +81,20 @@ struct ContentView: View {
     }
 
     private func recordAttack() {
-        let attack = Attack()
+        let attack = Attack(timestamp: .now)
         context.insert(attack)
+
         do {
+            // Il salvataggio avviene prima di aprire il modulo dei dettagli.
             try context.save()
             selectedAttack = attack
+            isNewAttack = true
             showingEditor = true
         } catch {
+            context.delete(attack)
             selectedAttack = nil
+            recordErrorMessage = "MigraNote non è riuscito a salvare l’attacco sul dispositivo. Riprova. Dettaglio: \(error.localizedDescription)"
+            showingRecordError = true
         }
     }
 
