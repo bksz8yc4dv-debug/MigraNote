@@ -38,7 +38,7 @@ final class AttackOptionsTests: XCTestCase {
             intensity: 7,
             duration: "4–12 ore",
             notes: "Test note",
-            customFieldValuesJSON: #"{\"Trigger\":\"Luce\"}"#
+            customFieldValuesJSON: #"{"Trigger":"Luce"}"#
         )
         let url = try BackupService.createFile(attacks: [original])
         defer { try? FileManager.default.removeItem(at: url) }
