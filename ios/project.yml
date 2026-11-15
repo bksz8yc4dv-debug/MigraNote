@@ -13,8 +13,9 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      - path: Resources/Assets.xcassets
     resources:
-      - path: Resources
+      - path: Resources/PrivacyInfo.xcprivacy
     info:
       path: Info.plist
       properties:
