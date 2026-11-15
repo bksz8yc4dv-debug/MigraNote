@@ -5,9 +5,12 @@ struct AttackEditorView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Bindable var attack: Attack
+    var isNewAttack = false
     @AppStorage("customFieldNames") private var customFieldNamesRaw = ""
     @StateObject private var premium = PremiumManager.shared
     @State private var selectedFactors: Set<String> = []
+    @State private var showingSaveError = false
+    @State private var saveErrorMessage = ""
 
     private var customFieldNames: [String] {
         customFieldNamesRaw.split(separator: "\n").map(String.init).filter { !$0.isEmpty }
@@ -16,21 +19,42 @@ struct AttackEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Data e ora") {
-                    DatePicker("Inizio dell’attacco", selection: $attack.timestamp)
+                if isNewAttack {
+                    Section {
+                        Label("Attacco registrato", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Data e ora sono già state salvate. I dettagli sono facoltativi: puoi aggiungerli ora oppure tornare più tardi.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+
+                Section("Data e ora") {
+                    DatePicker(
+                        "Inizio dell’attacco",
+                        selection: $attack.timestamp,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                }
+
                 Section {
                     ForEach(AttackOptions.factors, id: \.self) { factor in
                         Button {
                             if factor == "Nessuna causa evidente" {
-                                if selectedFactors.contains(factor) { selectedFactors.remove(factor) }
-                                else { selectedFactors = [factor] }
+                                if selectedFactors.contains(factor) {
+                                    selectedFactors.remove(factor)
+                                } else {
+                                    selectedFactors = [factor]
+                                }
                             } else {
                                 selectedFactors.remove("Nessuna causa evidente")
-                                if selectedFactors.contains(factor) { selectedFactors.remove(factor) }
-                                else { selectedFactors.insert(factor) }
+                                if selectedFactors.contains(factor) {
+                                    selectedFactors.remove(factor)
+                                } else {
+                                    selectedFactors.insert(factor)
+                                }
                             }
-                            attack.factors = Array(selectedFactors)
+                            attack.factors = AttackOptions.factors.filter { selectedFactors.contains($0) }
                         } label: {
                             HStack {
                                 Text(factor).foregroundStyle(.primary)
@@ -42,10 +66,11 @@ struct AttackEditorView: View {
                         }
                     }
                 } header: {
-                    Text("Cosa è successo prima?")
+                    Text("Cosa hai notato prima?")
                 } footer: {
-                    Text("Facoltativo. Puoi completare questi dettagli anche in seguito.")
+                    Text("Facoltativo. Sono annotazioni personali, non cause certe. Puoi completarle anche in seguito.")
                 }
+
                 Section("Intensità del dolore") {
                     Toggle("Indica l’intensità", isOn: Binding(
                         get: { attack.intensity != nil },
@@ -56,9 +81,12 @@ struct AttackEditorView: View {
                             get: { Double(attack.intensity ?? 5) },
                             set: { attack.intensity = Int($0) }
                         ), in: 1...10, step: 1)
-                        Text("\(attack.intensity ?? 5) / 10").font(.headline).foregroundStyle(.purple)
+                        Text("\(attack.intensity ?? 5) / 10")
+                            .font(.headline)
+                            .foregroundStyle(.purple)
                     }
                 }
+
                 Section("Durata") {
                     Picker("Durata", selection: $attack.duration) {
                         Text("Non indicata").tag(String?.none)
@@ -67,6 +95,7 @@ struct AttackEditorView: View {
                         }
                     }
                 }
+
                 if premium.isPremium && !customFieldNames.isEmpty {
                     Section("Campi personalizzati · Premium") {
                         ForEach(customFieldNames, id: \.self) { name in
@@ -74,22 +103,51 @@ struct AttackEditorView: View {
                         }
                     }
                 }
-                Section("Note") {
-                    TextField("Scrivi quello che vuoi…", text: $attack.notes, axis: .vertical)
-                        .lineLimit(3...7)
+
+                Section("Note facoltative") {
+                    TextField(
+                        selectedFactors.contains("Altro")
+                            ? "Specifica Altro o aggiungi note…"
+                            : "Aggiungi una nota, se vuoi…",
+                        text: $attack.notes,
+                        axis: .vertical
+                    )
+                    .lineLimit(3...7)
                 }
             }
             .navigationTitle("Dettagli attacco")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(isNewAttack ? "Più tardi" : "Chiudi") {
+                        saveAndDismiss()
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fine") {
-                        try? context.save()
-                        dismiss()
+                    Button("Salva") {
+                        saveAndDismiss()
                     }
                 }
             }
-            .onAppear { selectedFactors = Set(attack.factors) }
+            .interactiveDismissDisabled()
+            .alert("Salvataggio non riuscito", isPresented: $showingSaveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(saveErrorMessage)
+            }
+            .onAppear {
+                selectedFactors = Set(attack.factors)
+            }
+        }
+    }
+
+    private func saveAndDismiss() {
+        do {
+            try context.save()
+            dismiss()
+        } catch {
+            saveErrorMessage = "Le modifiche non sono state salvate. Il modulo resta aperto: riprova. Dettaglio: \(error.localizedDescription)"
+            showingSaveError = true
         }
     }
 
