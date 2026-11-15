@@ -22,6 +22,15 @@ final class AttackOptionsTests: XCTestCase {
         XCTAssertEqual(attack.customFieldValuesJSON, "{}")
     }
 
+    func testNewAttackCapturesCreationTime() {
+        let before = Date()
+        let attack = Attack()
+        let after = Date()
+
+        XCTAssertGreaterThanOrEqual(attack.timestamp, before)
+        XCTAssertLessThanOrEqual(attack.timestamp, after)
+    }
+
     func testBackupRoundTripPreservesAttackData() throws {
         let original = Attack(
             timestamp: Date(timeIntervalSince1970: 1_700_000_000),
@@ -29,7 +38,7 @@ final class AttackOptionsTests: XCTestCase {
             intensity: 7,
             duration: "4–12 ore",
             notes: "Test note",
-            customFieldValuesJSON: #"{"Trigger":"Luce"}"#
+            customFieldValuesJSON: #"{\"Trigger\":\"Luce\"}"#
         )
         let url = try BackupService.createFile(attacks: [original])
         defer { try? FileManager.default.removeItem(at: url) }
